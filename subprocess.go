@@ -42,5 +42,5 @@ func write_out(stdin io.WriteCloser) {
 	fmt.Print("Input: ")
 	text, _ := reader.ReadString('\n')
 	fmt.Println(text)
-	//io.Copy(stdin, bytes.NewBufferString(text))
+	io.Copy(stdin, bytes.NewBufferString(text))
 }
