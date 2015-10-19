@@ -5,8 +5,6 @@ import (
 )
 
 func main() {
-	fmt.Printf("test")
-	output, input := exec_command("cmd.exe", "/c nmap.exe -p- 192.168.0.1")
-	go read_out(output)
-	write_out(input)
+	fmt.Printf("Beam, because sometimes a 2x4 isn't enough\n")
+	main_menu()
 }
