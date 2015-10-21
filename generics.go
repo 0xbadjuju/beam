@@ -17,9 +17,9 @@ func check_error(err error) {
 func check_fatal_error(err error) {
 	if nil != err {
 		fmt.Fprintln(os.Stderr, "Error detected\n", err)
+		fmt.Printf("Bailing out")
+		os.Exit(1)
 	}
-	fmt.Printf("Bailing out")
-	os.Exit(1)
 }
 
 func check_result(result sql.Result){
