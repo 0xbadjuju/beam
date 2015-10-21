@@ -1,7 +1,11 @@
 package main
 
 import (
+	_ "github.com/mxk/go-sqlite/sqlite3"
+	_ "github.com/go-sql-driver/mysql"
 	"database/sql"
+	"fmt"
+	"os"
 )
 
 type db struct{
@@ -10,10 +14,26 @@ type db struct{
 
 var connection db
 
-func open_db() {
-	open, err := sql.Open("sqlite3", "./foo.db")
-	set_connection(open)
+func mysql_open_db() {
+	fmt.Printf("Opening SQL Connection\n")
+	open, err := sql.Open("mysql", "")
 	check_fatal_error(err)
+	err = open.Ping()
+	check_fatal_error(err)
+	set_connection(open)
+}
+
+func sqlite_open_db() {
+	fmt.Printf("Opening SQL Connection\n")
+	open, err := sql.Open("sqlite3", "")
+	check_fatal_error(err)
+	err = open.Ping()
+	check_fatal_error(err)
+	set_connection(open)
+}
+
+func close_db() {
+	get_connection().Close()
 }
 
 func set_connection(instance *sql.DB) {
@@ -24,7 +44,11 @@ func get_connection() *sql.DB {
     return connection.name
 }
 
-func create_db() {
+func sqlite_create_db() {
+	file, err := os.Create("./foo.db")
+    check_fatal_error(err)
+    file.Close()
+
 	stmt, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS projects (
 		project_id	INTEGER AUTOINCREMENT PRIMARY KEY,
@@ -48,9 +72,45 @@ func create_db() {
 	stmt3, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS tools (
 		tool_id		INTEGER AUTOINCREMENT PRIMARY KEY,
-		tool_name	TEXT PRIMARY KEY,
+		tool_name	TEXT,
 		command		TEXT,
 		arguments	TEXT
+		);`)
+	stmt3.Exec()
+	check_fatal_error(err)
+}
+
+func mysql_create_db() {
+	file, err := os.Create("./foo.db")
+    check_fatal_error(err)
+    file.Close()
+
+	stmt, err := connection.name.Prepare(`
+		CREATE TABLE IF NOT EXISTS projects (
+		project_id	INT AUTOINCREMENT PRIMARY KEY,
+		client_name	VARCHAR(50),
+		type 		VARCHAR(50)
+		);`)
+	stmt.Exec()
+	check_fatal_error(err)
+
+	stmt2, err := connection.name.Prepare(`
+		CREATE TABLE IF NOT EXISTS project_status (
+		scan_id		INT AUTOINCREMENT PRIMARY KEY,
+		client_name	VARCHAR(50),
+		scan 		VARCHAR(50),
+		start 		VARCHAR(50),
+		stop 		VARCHAR(50)
+		);`)
+	stmt2.Exec()
+	check_fatal_error(err)
+
+	stmt3, err := connection.name.Prepare(`
+		CREATE TABLE IF NOT EXISTS tools (
+		tool_id		INT AUTOINCREMENT PRIMARY KEY,
+		tool_name	VARCHAR(50),
+		command		VARCHAR(50),
+		arguments	VARCHAR(50)
 		);`)
 	stmt3.Exec()
 	check_fatal_error(err)

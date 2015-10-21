@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strings"
 )
 
@@ -10,7 +9,8 @@ func main_menu() {
 	for {
 		fmt.Printf("1. Manage Projects\n")
 		fmt.Printf("2. Manage Tools\n")
-		fmt.Printf("3. Exit\n")
+		fmt.Printf("3. Setup\n")
+		fmt.Printf("4. Exit\n")
 		fmt.Printf("Input: ")
 		selection := read_input()
 		switch selection {
@@ -19,7 +19,9 @@ func main_menu() {
 		case "2":
 			tools()
 		case "3":
-			os.Exit(0)
+			setup()
+		case "4":
+			return
 		default:
 			continue
 		}
@@ -155,4 +157,8 @@ func confirm()(bool) {
 			return false
 		}
 	}
+}
+
+func setup() {
+	sqlite_create_db()
 }
