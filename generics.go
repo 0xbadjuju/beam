@@ -36,3 +36,16 @@ func read_input() (string) {
 	check_error(err)
 	return strings.TrimSpace(input)
 }
+
+func confirm()(bool) {
+	for {
+		fmt.Printf("Continue (Y/N)? ")
+		selection := read_input()
+		strings.ToUpper(selection)
+		if ("Y" == selection) {
+			return true
+		} else if("N" == selection) {
+			return false
+		}
+	}
+}

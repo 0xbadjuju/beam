@@ -4,7 +4,6 @@ import (
 	_ "github.com/mxk/go-sqlite/sqlite3"
 	_ "github.com/go-sql-driver/mysql"
 	"database/sql"
-	"fmt"
 	"os"
 )
 
@@ -15,7 +14,6 @@ type db struct{
 var connection db
 
 func mysql_open_db() {
-	fmt.Printf("Opening SQL Connection\n")
 	open, err := sql.Open("mysql", "")
 	check_fatal_error(err)
 	err = open.Ping()
@@ -24,8 +22,7 @@ func mysql_open_db() {
 }
 
 func sqlite_open_db() {
-	fmt.Printf("Opening SQL Connection\n")
-	open, err := sql.Open("sqlite3", "")
+	open, err := sql.Open("sqlite3", "./foo.sqlite")
 	check_fatal_error(err)
 	err = open.Ping()
 	check_fatal_error(err)
@@ -51,16 +48,17 @@ func sqlite_create_db() {
 
 	stmt, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS projects (
-		project_id	INTEGER AUTOINCREMENT PRIMARY KEY,
+		project_id	INTEGER PRIMARY KEY,
 		client_name	TEXT,
 		type 		TEXT
 		);`)
-	stmt.Exec()
+	check_fatal_error(err)
+	_, err = stmt.Exec()
 	check_fatal_error(err)
 
 	stmt2, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS project_status (
-		scan_id		INTEGER AUTOINCREMENT PRIMARY KEY,
+		scan_id		INTEGER PRIMARY KEY,
 		client_name	TEXT,
 		scan 		TEXT,
 		start 		TEXT,
@@ -71,7 +69,7 @@ func sqlite_create_db() {
 
 	stmt3, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS tools (
-		tool_id		INTEGER AUTOINCREMENT PRIMARY KEY,
+		tool_id		INTEGER PRIMARY KEY,
 		tool_name	TEXT,
 		command		TEXT,
 		arguments	TEXT
@@ -148,9 +146,9 @@ func stop_scan() {
 }
 
 func insert_tool(tool_name string, command string, arguments string) {
-	stmt, err := connection.name.Prepare("INSERT INTO tools VALUES(?,?,?)")
+	stmt, err := connection.name.Prepare("INSERT INTO tools VALUES(?,?,?,?)")
 	check_error(err)
-	result, err := stmt.Exec(tool_name, command, arguments)
+	result, err := stmt.Exec(nil, tool_name, command, arguments)
 	check_error(err)
 	check_result(result)
 }
@@ -172,7 +170,7 @@ func delete_tool(tool_id string) {
 }
 
 func get_tools_list()(*sql.Rows) {
-	stmt, err := connection.name.Prepare("SELECT tool_name FROM tools;")
+	stmt, err := connection.name.Prepare("SELECT tool_id,tool_name FROM tools;")
 	check_error(err)
 	result, err := stmt.Query()
 	check_error(err)
