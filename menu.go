@@ -35,20 +35,23 @@ func main_menu() {
 func projects() {
 	for {
 		fmt.Printf("\n")
-		fmt.Printf("1. List projects\n")
-		fmt.Printf("2. Add project\n")
-		fmt.Printf("3. Delete project\n")
-		fmt.Printf("4. Return\n")
+		fmt.Printf("1. Resume project")
+		fmt.Printf("2. List projects\n")
+		fmt.Printf("3. Add project\n")
+		fmt.Printf("4. Delete project\n")
+		fmt.Printf("5. Return\n")
 		fmt.Printf("Input: ")
 		selection := read_input()
 		switch selection {
 			case "1":
-				list_projects()
+				resume_project()
 			case "2":
-				project_types()
+				list_projects()
 			case "3":
-				delete_project()
+				project_types()
 			case "4":
+				delete_project()
+			case "5":
 				return
 			default:
 				continue
@@ -57,8 +60,29 @@ func projects() {
 	}
 }
 
+func resume_project() {
+	list_projects()
+	fmt.Println("Project to resume: ")
+	project := read_input()
+}
+
+func open_project() {
+	
+}
+
 func list_projects() {
 	fmt.Printf("\n")
+	var (
+		project_id int
+		client_name string
+		project_type string
+		)
+	tools := get_projects_list()
+	for tools.Next() {
+		err := tools.Scan(&project_id, &client_name, &project_type)
+		check_error(err)
+		fmt.Printf("(%d) %s\t%s\n", project_id, client_name, project_type)
+	}
 	fmt.Printf("\n")
 }
 
@@ -89,7 +113,17 @@ func project_types() {
 }
 
 func create_project(project_type string) {
-
+	fmt.Printf("\n")
+	fmt.Printf("Client Name: ")
+	client_name := read_input()
+	fmt.Printf("Client Name: %s\n", client_name)
+	fmt.Printf("Project Type: %s\n", project_type)
+	if (confirm()) {
+		insert_project(client_name, project_type)
+	} else {
+		create_project(project_type)
+	}
+	fmt.Printf("\n")
 }
 
 func delete_project() {

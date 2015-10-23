@@ -40,10 +40,10 @@ func get_connection() *sql.DB {
     return connection.name
 }
 
-func insert_project() {
+func insert_project(client_name string, project_type string) {
 	stmt, err := connection.name.Prepare("INSERT INTO projects VALUES(?,?,?)")
 	check_error(err)
-	result, err := stmt.Exec()
+	result, err := stmt.Exec(nil, client_name, project_type)
 	check_error(err)
 	check_result(result)
 }
