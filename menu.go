@@ -9,7 +9,7 @@ func main_menu() {
 		fmt.Printf("\n")
 		fmt.Printf("1. Manage Projects\n")
 		fmt.Printf("2. Manage Tools\n")
-		fmt.Printf("3. Manage Macros")
+		fmt.Printf("3. Manage Macros\n")
 		fmt.Printf("4. Setup\n")
 		fmt.Printf("5. Exit\n")
 		fmt.Printf("Input: ")
@@ -20,9 +20,9 @@ func main_menu() {
 		case "2":
 			tools()
 		case "3":
-			setup()
-		case "4":
 			macros()
+		case "4":
+			setup()
 		case "5":
 			return
 		default:
@@ -178,15 +178,16 @@ func macros() {
 		fmt.Printf("1. List Macros\n")
 		fmt.Printf("2. Add Macro\n")
 		fmt.Printf("3. Delete Macro\n")
+		fmt.Printf("4. Return\n")
 		fmt.Printf("Input: ")
 		selection := read_input()
 		switch selection {
 			case "1":
-				list_macro()
+				list_macros()
 			case "2":
 				add_macro()
 			case "3":
-				delete_macro()
+				remove_macro()
 			case "4":
 				return
 			default:
@@ -196,16 +197,91 @@ func macros() {
 	}
 }
 
-func list_macro() {
-	
+func list_macros() {
+	fmt.Printf("\n")
+	var (
+		macro_id int
+		macro_name string
+		)
+	macros := get_macros_list()
+	for macros.Next() {
+		err := macros.Scan(&macro_id, &macro_name)
+		check_error(err)
+		fmt.Printf("(%d) %s\n", macro_id, macro_name)
+	}
+	fmt.Printf("\n")
 }
 
 func add_macro() {
-	
+	fmt.Printf("\n")
+	fmt.Printf("Macro name: ")
+	macro_name := read_input()
+	fmt.Printf("Create Macro %s\n", macro_name)
+	if (confirm()) {
+		macro_id := create_macro(macro_name)
+		edit_macro(macro_name, macro_id)
+	} else {
+		add_macro()
+	}
+	fmt.Printf("\n")
 }
 
-func delete_macro() {
-	
+func edit_macro(macro_name string, macro_id int) {
+	var sequence, tool_id int
+	fmt.Printf("\n")
+	fmt.Printf("Macro %s:\n", macro_name)
+	macro := get_macro(macro_id)
+	for macro.Next() {
+		macro.Scan(&macro_id,&macro_name,&sequence,&tool_id)
+	}
+	for {
+		fmt.Printf("\n")
+		fmt.Printf("1. Add Tool to Macro\n")
+		fmt.Printf("2. Delete Tool from Macro\n")
+		fmt.Printf("3. Return\n")
+		fmt.Printf("Input: ")
+		selection := read_input()
+		switch selection {
+			case "1":
+				add_tool_to_macro(macro_id)
+			case "2":
+				remove_tool_from_macro(macro_id)
+			case "3":
+				return
+			default:
+				continue
+			}
+		fmt.Printf("\n")
+	}
+}
+
+func add_tool_to_macro(macro_id int) {
+	fmt.Printf("Tools to add: ")
+	list_tools()
+	fmt.Printf("Macro Position: ")
+	position := read_input_int()
+	fmt.Printf("Tool ID: ")
+	tool_id := read_input_int()
+	if (confirm()) {
+		insert_tool_into_macro(macro_id,position,tool_id)
+	} else {
+		add_tool_to_macro(macro_id)
+	}
+}
+
+func remove_tool_from_macro(macro_id int) {
+	fmt.Printf("Tools to remove: ")
+	fmt.Printf("Macro Position: ")
+	position := read_input_int()
+	if (confirm()) {
+		delete_tool_from_macro(macro_id,position)
+	} else {
+		remove_tool_from_macro(macro_id)
+	}
+}
+
+func remove_macro() {
+
 }
 
 func setup() {

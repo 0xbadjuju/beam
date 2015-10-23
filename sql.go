@@ -4,7 +4,6 @@ import (
 	_ "github.com/mxk/go-sqlite/sqlite3"
 	_ "github.com/go-sql-driver/mysql"
 	"database/sql"
-	"os"
 )
 
 type db struct{
@@ -39,79 +38,6 @@ func set_connection(instance *sql.DB) {
 
 func get_connection() *sql.DB {
     return connection.name
-}
-
-func sqlite_create_db() {
-	file, err := os.Create("./foo.db")
-    check_fatal_error(err)
-    file.Close()
-
-	stmt, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS projects (
-		project_id	INTEGER PRIMARY KEY,
-		client_name	TEXT,
-		type 		TEXT
-		);`)
-	check_fatal_error(err)
-	_, err = stmt.Exec()
-	check_fatal_error(err)
-
-	stmt2, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS project_status (
-		scan_id		INTEGER PRIMARY KEY,
-		client_name	TEXT,
-		scan 		TEXT,
-		start 		TEXT,
-		stop 		TEXT
-		);`)
-	stmt2.Exec()
-	check_fatal_error(err)
-
-	stmt3, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS tools (
-		tool_id		INTEGER PRIMARY KEY,
-		tool_name	TEXT,
-		command		TEXT,
-		arguments	TEXT
-		);`)
-	stmt3.Exec()
-	check_fatal_error(err)
-}
-
-func mysql_create_db() {
-	file, err := os.Create("./foo.db")
-    check_fatal_error(err)
-    file.Close()
-
-	stmt, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS projects (
-		project_id	INT AUTOINCREMENT PRIMARY KEY,
-		client_name	VARCHAR(50),
-		type 		VARCHAR(50)
-		);`)
-	stmt.Exec()
-	check_fatal_error(err)
-
-	stmt2, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS project_status (
-		scan_id		INT AUTOINCREMENT PRIMARY KEY,
-		client_name	VARCHAR(50),
-		scan 		VARCHAR(50),
-		start 		VARCHAR(50),
-		stop 		VARCHAR(50)
-		);`)
-	stmt2.Exec()
-	check_fatal_error(err)
-
-	stmt3, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS tools (
-		tool_id		INT AUTOINCREMENT PRIMARY KEY,
-		tool_name	VARCHAR(50),
-		command		VARCHAR(50),
-		arguments	VARCHAR(50)
-		);`)
-	stmt3.Exec()
-	check_fatal_error(err)
 }
 
 func insert_project() {
@@ -175,4 +101,90 @@ func get_tools_list()(*sql.Rows) {
 	result, err := stmt.Query()
 	check_error(err)
 	return result
+}
+
+func create_macro(macro_name string)(int){
+	stmt, err := connection.name.Prepare("INSERT INTO macro_names VALUES(?,?);")
+	check_error(err)
+	result, err := stmt.Exec(nil, macro_name)
+	check_error(err)
+	check_result(result)
+	return get_macro_id(macro_name)
+}
+
+func select_macro(tool_id string)(*sql.Rows) {
+	stmt, err := connection.name.Prepare("SELECT * FROM macros WHERE macro_id LIKE ?")
+	check_error(err)
+	result, err := stmt.Query(tool_id)
+	check_error(err)
+	return result
+}
+
+func delete_macro(tool_id string) {
+	stmt, err := connection.name.Prepare("DELETE FROM macros WHERE macro_id LIKE ?;")
+	check_error(err)
+	result, err := stmt.Exec(tool_id)
+	check_error(err)
+	check_result(result)
+}
+
+func get_macro(macro_id int)(*sql.Rows) {
+	stmt, err := connection.name.Prepare(`
+		SELECT * FROM macros
+		INNER JOIN tools
+		ON macros.tool_id = tools.tool_id
+		WHERE macro_id LIKE ? 
+		;`)
+	check_error(err)
+	result, err := stmt.Query(macro_id)
+	check_error(err)
+	return result
+}
+
+func get_macros_list()(*sql.Rows) {
+	stmt, err := connection.name.Prepare("SELECT macro_id,macro_name FROM macro_names;")
+	check_error(err)
+	result, err := stmt.Query()
+	check_error(err)
+	return result
+}
+
+func insert_tool_into_macro(macro_id int, sequence int, tool_id int)(*sql.Rows) {
+	stmt, err := connection.name.Prepare(`
+		INSERT OR REPLACE INTO macros VALUES(?,?,?);`)
+	check_error(err)
+	result, err := stmt.Query(macro_id, sequence, tool_id)
+	check_error(err)
+	return result
+}
+
+func delete_tool_from_macro(macro_id int, sequence int)(*sql.Rows) {
+	stmt, err := connection.name.Prepare(`
+		DELETE FROM macros 
+		WHERE macro_id LIKE ? 
+		AND sequence LIKE ?
+	;`)
+	check_error(err)
+	result, err := stmt.Query(macro_id, sequence)
+	check_error(err)
+	return result
+}
+
+func get_macro_id(macro_name string)(int) {
+	var macro_id = 0
+	stmt, err := connection.name.Prepare(`
+		SELECT macro_id 
+		FROM macro_names 
+		WHERE macro_name LIKE ?
+	;`)
+	check_error(err)
+	result, err := stmt.Query(macro_name)
+	check_error(err)
+
+	for result.Next() {
+		check_error(err)
+		result.Scan(&macro_id)
+		check_error(err)
+	}
+	return macro_id
 }

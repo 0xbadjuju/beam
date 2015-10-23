@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -35,6 +36,16 @@ func read_input() (string) {
 	input, err := reader.ReadString('\n')
 	check_error(err)
 	return strings.TrimSpace(input)
+}
+
+func read_input_int() (int) {
+	reader := bufio.NewReader(os.Stdin)
+	input, err := reader.ReadString('\n')
+	check_error(err)
+	clean := strings.TrimSpace(input)
+	integer, err := strconv.Atoi(clean)
+	check_error(err)
+	return integer
 }
 
 func confirm()(bool) {
