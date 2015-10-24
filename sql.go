@@ -4,6 +4,7 @@ import (
 	_ "github.com/mxk/go-sqlite/sqlite3"
 	_ "github.com/go-sql-driver/mysql"
 	"database/sql"
+	"fmt"
 )
 
 type db struct{
@@ -40,12 +41,26 @@ func get_connection() *sql.DB {
     return connection.name
 }
 
-func insert_project(client_name string, project_type string) {
+func insert_project(client_name string, project_type int)(int) {
+	var project_id int
 	stmt, err := connection.name.Prepare("INSERT INTO projects VALUES(?,?,?)")
 	check_error(err)
 	result, err := stmt.Exec(nil, client_name, project_type)
 	check_error(err)
 	check_result(result)
+	stmt2, err := connection.name.Prepare(`
+		SELECT project_id 
+		FROM projects 
+		WHERE client_name LIKE ?
+		AND project_type LIKE ?
+	`)
+	check_error(err)
+	result2, err := stmt2.Query(client_name, project_type)
+	check_error(err)
+	for result2.Next() {
+		result2.Scan(&project_id)
+	}
+	return project_id
 }
 
 func get_projects_list()(*sql.Rows) {
@@ -54,21 +69,6 @@ func get_projects_list()(*sql.Rows) {
 	result, err := stmt.Query()
 	check_error(err)
 	return result
-}
-
-func start_scan() {
-	stmt, err := connection.name.Prepare("INSERT INTO tools VALUES(?,?,?,?,?)")
-	check_error(err)
-	result, err := stmt.Exec()
-	check_error(err)
-	check_result(result)
-}
-
-func stop_scan() {
-	stmt, err := connection.name.Prepare("INSERT INTO tools VALUES(?,?,?,?,?)")
-	check_error(err)
-	stmt.Exec()
-	check_error(err)
 }
 
 func insert_tool(tool_name string, command string, arguments string) {
@@ -112,10 +112,10 @@ func create_macro(macro_name string)(int){
 	return get_macro_id(macro_name)
 }
 
-func select_macro(tool_id string)(*sql.Rows) {
+func select_macro(macro_id int)(*sql.Rows) {
 	stmt, err := connection.name.Prepare("SELECT * FROM macros WHERE macro_id LIKE ?")
 	check_error(err)
-	result, err := stmt.Query(tool_id)
+	result, err := stmt.Query(macro_id)
 	check_error(err)
 	return result
 }
@@ -192,22 +192,22 @@ func get_macro_id(macro_name string)(int) {
 func insert_scan(client_id int, tool_id int) {
 	stmt, err := connection.name.Prepare(`
 		INSERT INTO project_status 
-		VALUES(?,?,?,datetime('now'),NULL)
-	;`)
+		VALUES(NULL,?,?,NULL,NULL);
+	`)
 	check_error(err)
-	result, err := stmt.Exec(nil,client_id,tool_id)
+	result, err := stmt.Exec(client_id,tool_id)
 	check_error(err)
 	check_result(result)
 }
 
-func restart_scan(client_id int, tool_id int) {
+func start_scan(client_id int, tool_id int) {
 	stmt, err := connection.name.Prepare(`
 		UPDATE project_status 
 		SET start = datetime('now'),
 		stop = NULL
 		WHERE project_id = ?
-		AND tool_id = ?
-	;`)
+		AND tool_id = ?;
+	`)
 	check_error(err)
 	result, err := stmt.Exec(client_id, tool_id)
 	check_error(err)
@@ -219,8 +219,8 @@ func finish_scan(client_id int, tool_id int) {
 		UPDATE project_status 
 		SET stop = datetime('now')
 		WHERE project_id = ?
-		AND tool_id = ?
-	;`)
+		AND tool_id = ?;
+	`)
 	check_error(err)
 	result, err := stmt.Exec(client_id, tool_id)
 	check_error(err)
@@ -231,10 +231,56 @@ func get_scans(client_id int)(*sql.Rows) {
 	stmt, err := connection.name.Prepare(`
 		SELECT tool_id, start, stop 
 		FROM project_status
-		WHERE project_id LIKE ?
-	;`)
+		WHERE project_id LIKE ?;
+	`)
 	check_error(err)
 	result, err := stmt.Query(client_id)
 	check_error(err)
 	return result
+}
+
+func resume_scanning(project_id int) {
+	var tool_name, command, arguments, start, stop string
+	stmt, err := connection.name.Prepare(`
+		SELECT * FROM project_status
+		INNER JOIN tools
+		ON project_status.tool_id = tools.tool_id
+		WHERE project_id LIKE ?
+		AND stop IS NOT NULL;
+	`)
+	check_error(err)
+	result, err := stmt.Query(project_id)
+	check_error(err)
+	fmt.Printf("Completed Scans: \n")
+	for result.Next() {
+		result.Scan(&tool_name, &command, &arguments, &start, &stop)
+		fmt.Printf("%s %s %s %s %s\n", tool_name, command, arguments, start, stop)
+	}
+
+	stmt2, err := connection.name.Prepare(`
+		SELECT * FROM project_status
+		INNER JOIN tools
+		ON project_status.tool_id = tools.tool_id
+		WHERE project_id LIKE ?
+		AND stop IS NULL;
+	`)
+	check_error(err)
+	result2, err := stmt2.Query(project_id)
+	check_error(err)
+	fmt.Printf("Scans to be run: \n")
+	for result2.Next() {
+		result2.Scan(&tool_name, &command, &arguments)
+		fmt.Printf("%s %s %s %s %s\n", tool_name, command, arguments)
+	}
+
+	if (confirm()) {
+		result3, err := stmt2.Query(project_id)
+		check_error(err)
+		for result3.Next() {
+			result3.Scan(&tool_name, &command, &arguments)
+			stdin, stdout := exec_command(command, arguments)
+			add_pipe(project_id, stdin, stdout)
+			go read_out(stdout)
+		}
+	}
 }

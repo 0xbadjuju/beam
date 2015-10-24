@@ -9,7 +9,7 @@ import(
 	"os/exec"
 )
 
-func exec_command(command string, args string) (io.ReadCloser, io.WriteCloser) {
+func exec_command(command string, args string) (io.WriteCloser, io.ReadCloser) {
 	fmt.Printf("Command = " + command + " " + args + "\n")
 	proc := exec.Command(command,args)
 	
@@ -21,13 +21,8 @@ func exec_command(command string, args string) (io.ReadCloser, io.WriteCloser) {
 
 	err = proc.Start()
 	check_error(err)
-
-	/*
-	err = proc.Wait()
-	check_error(err)
-	*/
 	
-	return stdout, stdin
+	return stdin, stdout
 }
 
 func read_out(stdout io.ReadCloser) {

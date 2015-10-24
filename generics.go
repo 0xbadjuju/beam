@@ -39,10 +39,14 @@ func read_input() (string) {
 }
 
 func read_input_int() (int) {
+	fmt.Printf("Input: ")
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	check_error(err)
 	clean := strings.TrimSpace(input)
+	if (0 == len(clean)){
+		read_input_int()
+	}
 	integer, err := strconv.Atoi(clean)
 	check_error(err)
 	return integer

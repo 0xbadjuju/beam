@@ -11,9 +11,10 @@ func sqlite_create_db() {
 
 	stmt, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS projects (
-		project_id	INTEGER PRIMARY KEY,
-		client_name	TEXT,
-		type 		TEXT
+		project_id		INTEGER PRIMARY KEY,
+		client_name		TEXT,
+		project_type 	INT,
+		UNIQUE(client_name, project_type)
 		);`)
 	check_fatal_error(err)
 	_, err = stmt.Exec()
@@ -41,7 +42,8 @@ func sqlite_create_db() {
 
 	stmt4, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS project_status (
-		tool_id		INTEGER PRIMARY KEY,
+		scan_id		INTEGER PRIMARY KEY,
+		tool_id		INTEGER,
 		project_id	INTEGER,
 		start 		TEXT,
 		stop 		TEXT,

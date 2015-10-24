@@ -13,17 +13,17 @@ func main_menu() {
 		fmt.Printf("4. Setup\n")
 		fmt.Printf("5. Exit\n")
 		fmt.Printf("Input: ")
-		selection := read_input()
+		selection := read_input_int()
 		switch selection {
-		case "1":
+		case 1:
 			projects()
-		case "2":
+		case 2:
 			tools()
-		case "3":
+		case 3:
 			macros()
-		case "4":
+		case 4:
 			setup()
-		case "5":
+		case 5:
 			return
 		default:
 			main_menu()
@@ -40,18 +40,17 @@ func projects() {
 		fmt.Printf("3. Add project\n")
 		fmt.Printf("4. Delete project\n")
 		fmt.Printf("5. Return\n")
-		fmt.Printf("Input: ")
-		selection := read_input()
+		selection := read_input_int()
 		switch selection {
-			case "1":
+			case 1:
 				resume_project()
-			case "2":
+			case 2:
 				list_projects()
-			case "3":
+			case 3:
 				project_types()
-			case "4":
+			case 4:
 				delete_project()
-			case "5":
+			case 5:
 				return
 			default:
 				continue
@@ -61,16 +60,12 @@ func projects() {
 }
 
 func resume_project() {
-	var scan_id int
-	var tool, start, stop string
+	fmt.Printf("\n")
 	list_projects()
 	fmt.Printf("Project to resume: ")
-	project := read_input_int()
-	scans := get_scans(project)
-	for scans.Next() {
-		scans.Scan(&scan_id,&tool,&start,&stop)
-		fmt.Printf("%s %s %s %s", scan_id, tool, start, stop)
-	}
+	project_id := read_input_int()
+	resume_scanning(project_id)
+	fmt.Printf("\n")
 }
 
 func open_project() {
@@ -99,19 +94,18 @@ func project_types() {
 	fmt.Printf("2. Internal Pen\n")
 	fmt.Printf("3. Web App Pen\n")
 	fmt.Printf("4. Return \n")
-	fmt.Printf("Input: ")
-	selection := read_input()
+	selection := read_input_int()
 	switch selection {
-		case "1":
-			create_project("External Pen")
+		case 1:
+			create_project(1)
 			break
-		case "2":
-			create_project("Internal Pen")
+		case 2:
+			create_project(2)
 			break
-		case "3":
-			create_project("Web App Pen")
+		case 3:
+			create_project(3)
 			break
-		case "4":
+		case 4:
 			return
 		default:
 			project_types()
@@ -119,14 +113,13 @@ func project_types() {
 	fmt.Printf("\n")
 }
 
-func create_project(project_type string) {
+func create_project(project_type int) {
+	var project_id int
 	fmt.Printf("\n")
 	fmt.Printf("Client Name: ")
 	client_name := read_input()
-	fmt.Printf("Client Name: %s\n", client_name)
-	fmt.Printf("Project Type: %s\n", project_type)
 	if (confirm()) {
-		insert_project(client_name, project_type)
+		project_id = insert_project(client_name, project_type)
 	} else {
 		create_project(project_type)
 	}
@@ -135,16 +128,27 @@ func create_project(project_type string) {
 		fmt.Printf("Assign tool/macro: to project\n")
 		fmt.Printf("1. Assign tool\n")
 		fmt.Printf("2. Assign macro\n")
-		fmt.Printf("Input: ")
+		fmt.Printf("3. Start scan\n")
+		fmt.Printf("4. Return\n")
 		selection := read_input_int()
 		switch selection {
 			case 1:
 				list_tools()
-				tool := read_input_int()
+				tool_id := read_input_int()
+				if (confirm()) {
+					insert_scan(project_id,tool_id)
+				} 
 			case 2:
+				var tool_id int
 				list_macros()
 				macro := read_input_int()
+				rows := select_macro(macro)
+				for rows.Next() {
+					rows.Scan(&tool_id)
+				}
 			case 3:
+				start_scanning(project_id)
+			case 4:
 				return
 			default:
 				continue
@@ -158,6 +162,12 @@ func delete_project() {
 	fmt.Printf("\n")
 }
 
+func start_scanning(project_id int) {
+	fmt.Printf("\n")
+	resume_scanning(project_id)
+	fmt.Printf("\n")
+}
+
 func tools() {
 	for {
 		fmt.Printf("\n")
@@ -165,16 +175,15 @@ func tools() {
 		fmt.Printf("2. Add tool\n")
 		fmt.Printf("3. Delete tool\n")
 		fmt.Printf("4. Return \n")
-		fmt.Printf("Input: ")
-		selection := read_input()
+		selection := read_input_int()
 		switch selection {
-			case "1":
+			case 1:
 				list_tools()
-			case "2":
+			case 2:
 				add_tool()
-			case "3":
+			case 3:
 				remove_tool()
-			case "4":
+			case 4:
 				return
 			default:
 				continue
@@ -239,16 +248,15 @@ func macros() {
 		fmt.Printf("2. Add Macro\n")
 		fmt.Printf("3. Delete Macro\n")
 		fmt.Printf("4. Return\n")
-		fmt.Printf("Input: ")
-		selection := read_input()
+		selection := read_input_int()
 		switch selection {
-			case "1":
+			case 1:
 				list_macros()
-			case "2":
+			case 2:
 				add_macro()
-			case "3":
+			case 3:
 				remove_macro()
-			case "4":
+			case 4:
 				return
 			default:
 				continue
@@ -299,14 +307,13 @@ func edit_macro(macro_name string, macro_id int) {
 		fmt.Printf("1. Add Tool to Macro\n")
 		fmt.Printf("2. Delete Tool from Macro\n")
 		fmt.Printf("3. Return\n")
-		fmt.Printf("Input: ")
-		selection := read_input()
+		selection := read_input_int()
 		switch selection {
-			case "1":
+			case 1:
 				add_tool_to_macro(macro_id)
-			case "2":
+			case 2:
 				remove_tool_from_macro(macro_id)
-			case "3":
+			case 3:
 				return
 			default:
 				continue
@@ -349,14 +356,13 @@ func setup() {
 	fmt.Printf("1. SQLite\n")
 	fmt.Printf("2. MySQL\n")
 	fmt.Printf("3. Return\n")
-	fmt.Printf("Input: ")
-	selection := read_input()
+	selection := read_input_int()
 	switch selection {
-		case "1":
+		case 1:
 			sqlite_create_db()
-		case "2":
+		case 2:
 			mysql_create_db()
-		case "3":
+		case 3:
 			return
 		default:
 			setup()
