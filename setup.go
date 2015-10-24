@@ -20,27 +20,39 @@ func sqlite_create_db() {
 	check_fatal_error(err)
 
 	stmt2, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS project_status (
-		scan_id		INTEGER PRIMARY KEY,
-		client_name	TEXT,
-		scan 		TEXT,
-		start 		TEXT,
-		stop 		TEXT
-		);`)
-	stmt2.Exec()
-	check_fatal_error(err)
-
-	stmt3, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS tools (
 		tool_id		INTEGER PRIMARY KEY,
 		tool_name	TEXT,
 		command		TEXT,
 		arguments	TEXT
 		);`)
-	stmt3.Exec()
+	check_fatal_error(err)
+	_, err = stmt2.Exec()
+	check_fatal_error(err)
+
+	stmt3, err := connection.name.Prepare(`
+		CREATE TABLE IF NOT EXISTS macro_names (
+		macro_id	INTEGER PRIMARY KEY,
+		macro_name	TEXT
+		);`)
+	check_fatal_error(err)
+	_, err = stmt3.Exec()
 	check_fatal_error(err)
 
 	stmt4, err := connection.name.Prepare(`
+		CREATE TABLE IF NOT EXISTS project_status (
+		tool_id		INTEGER PRIMARY KEY,
+		project_id	INTEGER,
+		start 		TEXT,
+		stop 		TEXT,
+		FOREIGN KEY(tool_id) REFERENCES tools(tool_id),
+		FOREIGN KEY(project_id) REFERENCES projects(project_id)
+		);`)
+	check_fatal_error(err)
+	_, err = stmt4.Exec()
+	check_fatal_error(err)
+
+	stmt5, err := connection.name.Prepare(`
 		CREATE TABLE IF NOT EXISTS macros (
 		macro_id	INTEGER PRIMARY KEY,
 		sequence	INTEGER,
@@ -50,15 +62,8 @@ func sqlite_create_db() {
 		UNIQUE(macro_id,sequence)
 		);
 		`)
-	stmt4.Exec()
 	check_fatal_error(err)
-
-	stmt5, err := connection.name.Prepare(`
-		CREATE TABLE IF NOT EXISTS macro_names (
-		macro_id	INTEGER PRIMARY KEY,
-		macro_name	TEXT
-		);`)
-	stmt5.Exec()
+	_, err = stmt5.Exec()
 	check_fatal_error(err)
 }
 
@@ -73,6 +78,7 @@ func mysql_create_db() {
 		client_name	VARCHAR(50),
 		type 		VARCHAR(50)
 		);`)
+	check_fatal_error(err)
 	stmt.Exec()
 	check_fatal_error(err)
 
@@ -84,6 +90,7 @@ func mysql_create_db() {
 		start 		VARCHAR(50),
 		stop 		VARCHAR(50)
 		);`)
+	check_fatal_error(err)
 	stmt2.Exec()
 	check_fatal_error(err)
 
@@ -94,6 +101,7 @@ func mysql_create_db() {
 		command		VARCHAR(50),
 		arguments	VARCHAR(50)
 		);`)
+	check_fatal_error(err)
 	stmt3.Exec()
 	check_fatal_error(err)
 

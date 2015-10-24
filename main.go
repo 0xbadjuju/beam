@@ -13,10 +13,8 @@ func main() {
 
 func mysql() {
 	mysql_open_db()
-	mysql_create_db()
 }
 
 func sqlite() {
 	sqlite_open_db()
-	sqlite_create_db()
 }

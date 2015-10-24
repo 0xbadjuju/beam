@@ -35,7 +35,7 @@ func main_menu() {
 func projects() {
 	for {
 		fmt.Printf("\n")
-		fmt.Printf("1. Resume project")
+		fmt.Printf("1. Resume project\n")
 		fmt.Printf("2. List projects\n")
 		fmt.Printf("3. Add project\n")
 		fmt.Printf("4. Delete project\n")
@@ -61,13 +61,20 @@ func projects() {
 }
 
 func resume_project() {
+	var scan_id int
+	var tool, start, stop string
 	list_projects()
-	fmt.Println("Project to resume: ")
-	project := read_input()
+	fmt.Printf("Project to resume: ")
+	project := read_input_int()
+	scans := get_scans(project)
+	for scans.Next() {
+		scans.Scan(&scan_id,&tool,&start,&stop)
+		fmt.Printf("%s %s %s %s", scan_id, tool, start, stop)
+	}
 }
 
 func open_project() {
-	
+
 }
 
 func list_projects() {
@@ -123,7 +130,26 @@ func create_project(project_type string) {
 	} else {
 		create_project(project_type)
 	}
-	fmt.Printf("\n")
+	for {
+		fmt.Printf("\n")
+		fmt.Printf("Assign tool/macro: to project\n")
+		fmt.Printf("1. Assign tool\n")
+		fmt.Printf("2. Assign macro\n")
+		fmt.Printf("Input: ")
+		selection := read_input_int()
+		switch selection {
+			case 1:
+				list_tools()
+				tool := read_input_int()
+			case 2:
+				list_macros()
+				macro := read_input_int()
+			case 3:
+				return
+			default:
+				continue
+		}
+	}
 }
 
 func delete_project() {

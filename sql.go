@@ -188,3 +188,53 @@ func get_macro_id(macro_name string)(int) {
 	}
 	return macro_id
 }
+
+func insert_scan(client_id int, tool_id int) {
+	stmt, err := connection.name.Prepare(`
+		INSERT INTO project_status 
+		VALUES(?,?,?,datetime('now'),NULL)
+	;`)
+	check_error(err)
+	result, err := stmt.Exec(nil,client_id,tool_id)
+	check_error(err)
+	check_result(result)
+}
+
+func restart_scan(client_id int, tool_id int) {
+	stmt, err := connection.name.Prepare(`
+		UPDATE project_status 
+		SET start = datetime('now'),
+		stop = NULL
+		WHERE project_id = ?
+		AND tool_id = ?
+	;`)
+	check_error(err)
+	result, err := stmt.Exec(client_id, tool_id)
+	check_error(err)
+	check_result(result)
+}
+
+func finish_scan(client_id int, tool_id int) {
+	stmt, err := connection.name.Prepare(`
+		UPDATE project_status 
+		SET stop = datetime('now')
+		WHERE project_id = ?
+		AND tool_id = ?
+	;`)
+	check_error(err)
+	result, err := stmt.Exec(client_id, tool_id)
+	check_error(err)
+	check_result(result)
+}
+
+func get_scans(client_id int)(*sql.Rows) {
+	stmt, err := connection.name.Prepare(`
+		SELECT tool_id, start, stop 
+		FROM project_status
+		WHERE project_id LIKE ?
+	;`)
+	check_error(err)
+	result, err := stmt.Query(client_id)
+	check_error(err)
+	return result
+}
