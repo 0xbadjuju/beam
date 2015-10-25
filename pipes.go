@@ -9,7 +9,7 @@ type pipe struct {
 	stdout	io.ReadCloser
 }
 
-var pipes map[int]pipe
+var pipes = map[int]pipe{}
 
 func add_pipe(client_id int, stdin io.WriteCloser, stdout io.ReadCloser) {
 	var tmp pipe

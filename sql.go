@@ -189,13 +189,13 @@ func get_macro_id(macro_name string)(int) {
 	return macro_id
 }
 
-func insert_scan(client_id int, tool_id int) {
+func insert_scan(project_id int, tool_id int) {
 	stmt, err := connection.name.Prepare(`
 		INSERT INTO project_status 
 		VALUES(NULL,?,?,NULL,NULL);
 	`)
 	check_error(err)
-	result, err := stmt.Exec(client_id,tool_id)
+	result, err := stmt.Exec(tool_id,project_id)
 	check_error(err)
 	check_result(result)
 }
@@ -242,11 +242,13 @@ func get_scans(client_id int)(*sql.Rows) {
 func resume_scanning(project_id int) {
 	var tool_name, command, arguments, start, stop string
 	stmt, err := connection.name.Prepare(`
-		SELECT * FROM project_status
+		SELECT tool_name, command, arguments 
+		FROM project_status
 		INNER JOIN tools
 		ON project_status.tool_id = tools.tool_id
 		WHERE project_id LIKE ?
-		AND stop IS NOT NULL;
+		AND stop IS NOT NULL
+		ORDER BY scan_id ASC;
 	`)
 	check_error(err)
 	result, err := stmt.Query(project_id)
@@ -258,11 +260,13 @@ func resume_scanning(project_id int) {
 	}
 
 	stmt2, err := connection.name.Prepare(`
-		SELECT * FROM project_status
+		SELECT tool_name, command, arguments 
+		FROM project_status
 		INNER JOIN tools
 		ON project_status.tool_id = tools.tool_id
 		WHERE project_id LIKE ?
-		AND stop IS NULL;
+		AND stop IS NULL
+		ORDER BY scan_id ASC;
 	`)
 	check_error(err)
 	result2, err := stmt2.Query(project_id)
@@ -270,7 +274,7 @@ func resume_scanning(project_id int) {
 	fmt.Printf("Scans to be run: \n")
 	for result2.Next() {
 		result2.Scan(&tool_name, &command, &arguments)
-		fmt.Printf("%s %s %s %s %s\n", tool_name, command, arguments)
+		fmt.Printf("%s %s %s\n", tool_name, command, arguments)
 	}
 
 	if (confirm()) {
