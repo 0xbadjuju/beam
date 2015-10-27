@@ -15,7 +15,8 @@ func sqlite_create_db() {
 		client_name		TEXT,
 		project_type 	INT,
 		UNIQUE(client_name, project_type)
-		);`)
+		);
+	`)
 	check_fatal_error(err)
 	_, err = stmt.Exec()
 	check_fatal_error(err)
@@ -26,7 +27,8 @@ func sqlite_create_db() {
 		tool_name	TEXT,
 		command		TEXT,
 		arguments	TEXT
-		);`)
+		);
+	`)
 	check_fatal_error(err)
 	_, err = stmt2.Exec()
 	check_fatal_error(err)
@@ -35,7 +37,8 @@ func sqlite_create_db() {
 		CREATE TABLE IF NOT EXISTS macro_names (
 		macro_id	INTEGER PRIMARY KEY,
 		macro_name	TEXT
-		);`)
+		);
+	`)
 	check_fatal_error(err)
 	_, err = stmt3.Exec()
 	check_fatal_error(err)
@@ -45,11 +48,13 @@ func sqlite_create_db() {
 		scan_id		INTEGER PRIMARY KEY,
 		tool_id		INTEGER,
 		project_id	INTEGER,
+		address 	TEXT,
 		start 		TEXT,
 		stop 		TEXT,
 		FOREIGN KEY(tool_id) REFERENCES tools(tool_id),
 		FOREIGN KEY(project_id) REFERENCES projects(project_id)
-		);`)
+		);
+	`)
 	check_fatal_error(err)
 	_, err = stmt4.Exec()
 	check_fatal_error(err)
@@ -63,7 +68,7 @@ func sqlite_create_db() {
 		FOREIGN KEY(tool_id) REFERENCES tools(tool_id),
 		UNIQUE(macro_id,sequence)
 		);
-		`)
+	`)
 	check_fatal_error(err)
 	_, err = stmt5.Exec()
 	check_fatal_error(err)
@@ -79,7 +84,8 @@ func mysql_create_db() {
 		project_id	INT AUTOINCREMENT PRIMARY KEY,
 		client_name	VARCHAR(50),
 		type 		VARCHAR(50)
-		);`)
+		);
+	`)
 	check_fatal_error(err)
 	stmt.Exec()
 	check_fatal_error(err)
@@ -91,7 +97,8 @@ func mysql_create_db() {
 		scan 		VARCHAR(50),
 		start 		VARCHAR(50),
 		stop 		VARCHAR(50)
-		);`)
+		);
+	`)
 	check_fatal_error(err)
 	stmt2.Exec()
 	check_fatal_error(err)
@@ -102,7 +109,8 @@ func mysql_create_db() {
 		tool_name	VARCHAR(50),
 		command		VARCHAR(50),
 		arguments	VARCHAR(50)
-		);`)
+		);
+	`)
 	check_fatal_error(err)
 	stmt3.Exec()
 	check_fatal_error(err)
@@ -125,7 +133,8 @@ func mysql_create_db() {
 		ON DELETE CASCADE
 		ON UPDATE CASCADE,
 		UNIQUE(macro_id,sequence)
-		);`)
+		);
+	`)
 	stmt4.Exec()
 	check_fatal_error(err)
 
@@ -133,7 +142,8 @@ func mysql_create_db() {
 		CREATE TABLE IF NOT EXISTS macro_names (
 		macro_id	INT PRIMARY KEY,
 		macro_name	VARCHAR(50)
-		);`)
+		);
+	`)
 	stmt5.Exec()
 	check_fatal_error(err)
 }

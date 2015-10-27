@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"regexp"
 )
 
 func check_error(err error) {
@@ -38,17 +39,28 @@ func read_input() (string) {
 	return strings.TrimSpace(input)
 }
 
-func read_input_int() (int) {
-	fmt.Printf("Input: ")
+func read_input_int(section string) (int) {
+	var integer int
+
+	regex, err := regexp.Compile("[0-9]+")
+	check_error(err)
+	
+	fmt.Printf("("+section+") Input: ")
 	reader := bufio.NewReader(os.Stdin)
 	input, err := reader.ReadString('\n')
 	check_error(err)
 	clean := strings.TrimSpace(input)
 	if (0 == len(clean)){
-		read_input_int()
+		read_input_int(section)
 	}
-	integer, err := strconv.Atoi(clean)
-	check_error(err)
+	if (regex.MatchString(clean)) {
+		integer, err := strconv.Atoi(clean)
+		check_error(err)
+		return integer
+	} else {
+		fmt.Printf(clean)
+		read_input_int(section)
+	}
 	return integer
 }
 
